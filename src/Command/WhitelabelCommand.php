@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Dotenv\Dotenv;
 use Symfony\Component\Dotenv\Exception\PathException;
+use Symfony\Component\Filesystem\Filesystem;
 
 class WhitelabelCommand extends BaseCommand
 {
@@ -54,6 +55,7 @@ class WhitelabelCommand extends BaseCommand
             $mauticSystemThemePath = $this->createSystemTheme($projectRootPath, $mauticWebRoot);
             $this->copyLoginViewTemplate($projectRootPath, $mauticWebRoot, $mauticSystemThemePath, $output);
             $this->overrideLoginViewTemplate($mauticSystemThemePath);
+            $this->clearMauticCache($projectRootPath);
         } catch (\RuntimeException $e) {
             $output->writeln(sprintf("<error>%s</error>", $e->getMessage()));
             return Command::FAILURE;
@@ -106,6 +108,19 @@ class WhitelabelCommand extends BaseCommand
         $newContent = preg_replace($pattern, $replacement, $content);
         if (file_put_contents($path, $newContent) === false) {
             throw new \RuntimeException('Error writing to the override login view template file');
+        }
+    }
+
+    private function clearMauticCache(string $projectRootPath): void
+    {
+        $cachePath = $projectRootPath.'/var/cache';
+        $filesystem = new Filesystem();
+        $cacheFiles = glob($cachePath.'/*');
+
+        if ($cacheFiles !== false) {
+            foreach ($cacheFiles as $cacheFile) {
+                $filesystem->remove($cacheFile);
+            }
         }
     }
 }
