@@ -15,10 +15,8 @@ use Matbcvo\MauticWhitelabel\Command\WhitelabelCommand;
 class Plugin implements PluginInterface, EventSubscriberInterface, Capable, CommandProvider
 {
     protected $composer;
-    
     protected $io;
-
-    private const CALLBACK_PRIORITY = 65535;
+    private const CALLBACK_PRIORITY = PHP_INT_MAX;
 
     public function activate(Composer $composer, IOInterface $io)
     {
@@ -63,6 +61,6 @@ class Plugin implements PluginInterface, EventSubscriberInterface, Capable, Comm
     public function onPostInstallOrUpdate(Event $event)
     {
         $io = $event->getIO();
-        $io->write("Run [composer mautic:whitelabel] to whitelabel your Mautic instance");
+        $io->write("<info>Run [composer mautic:whitelabel] to whitelabel your Mautic instance.</info>");
     }
 }
