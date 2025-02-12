@@ -13,16 +13,6 @@ use Symfony\Component\Dotenv\Exception\PathException;
 
 class WhitelabelCommand extends BaseCommand
 {
-    protected $input;
-    protected $output;
-
-    public function __construct(InputInterface $input, OutputInterface $output)
-    {
-        $this->input = $input;
-        $this->output = $output;
-        parent::__construct();
-    }
-
     protected function configure(): void
     {
         $this->setName('mautic:whitelabel')
@@ -62,7 +52,7 @@ class WhitelabelCommand extends BaseCommand
 
         try {
             $mauticSystemThemePath = $this->createSystemTheme($projectRootPath, $mauticWebRoot);
-            $this->copyLoginViewTemplate($projectRootPath, $mauticWebRoot, $mauticSystemThemePath);
+            $this->copyLoginViewTemplate($projectRootPath, $mauticWebRoot, $mauticSystemThemePath, $output);
             $this->overrideLoginViewTemplate($mauticSystemThemePath);
         } catch (\RuntimeException $e) {
             $output->writeln(sprintf("<error>%s</error>", $e->getMessage()));
@@ -87,14 +77,14 @@ class WhitelabelCommand extends BaseCommand
         return $mauticSystemThemePath;
     }
 
-    private function copyLoginViewTemplate(string $projectRootPath, string $mauticWebRoot, string $mauticSystemThemePath): void
+    private function copyLoginViewTemplate(string $projectRootPath, string $mauticWebRoot, string $mauticSystemThemePath, OutputInterface $output): void
     {
         // Login page
         // app/bundles/UserBundle/Resources/views/Security/base.html.twig
         $mauticLoginViewTemplatePath = $projectRootPath.'/'.$mauticWebRoot.'app/bundles/UserBundle/Resources/views/Security';
-        $this->output->writeln("mauticLoginViewTemplatePath: {$mauticLoginViewTemplatePath}");
+        $output->writeln("mauticLoginViewTemplatePath: {$mauticLoginViewTemplatePath}");
         $overrideLoginViewTemplatePath = $mauticSystemThemePath.'/UserBundle/Resources/views/Security';
-        $this->output->writeln("overrideLoginViewTemplatePath: {$overrideLoginViewTemplatePath}");
+        $output->writeln("overrideLoginViewTemplatePath: {$overrideLoginViewTemplatePath}");
 
         // Create directory for overriding view template
         mkdir($mauticSystemThemePath.'/UserBundle/Resources/views/Security', $permissions = 0777, $recursive = true);
