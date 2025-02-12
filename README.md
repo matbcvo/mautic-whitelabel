@@ -11,6 +11,13 @@ Run the following command inside your **Mautic project root**:
 composer require matbcvo/mautic-whitelabel
 ```
 
+You may be asked to confirm if you want to add this plugin to your allowed plugins, you can answer `y`.
+
+```
+matbcvo/mautic-whitelabel contains a Composer plugin which is currently not in your allow-plugins config. See https://getcomposer.org/allow-plugins
+Do you trust "matbcvo/mautic-whitelabel" to execute code and wish to enable it now? (writes "allow-plugins" to composer.json) [y,n,d,?] y
+```
+
 ## Configuration
 
 Ensure your `.env` file (or compiled env) contains the required branding variables:

@@ -3,9 +3,9 @@
 namespace Matbcvo\MauticWhitelabel\Command;
 
 use Composer\Command\BaseCommand;
-use Dotenv\Dotenv;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Dotenv\Dotenv;
 
 class WhitelabelCommand extends BaseCommand
 {
@@ -27,13 +27,23 @@ class WhitelabelCommand extends BaseCommand
             return 1; // Failure
         }
 
-        $dotenv = Dotenv::createImmutable($projectRootPath);
-        $dotenv->load();
+        $dotenv = new Dotenv();
+        $dotenv->loadEnv($envFile);
 
-        $logoPath = $_ENV['WHITELABEL_LOGO'] ?? '';
+        $whitelabel['brand'] = $_ENV['WHITELABEL_BRAND'] ?? '';
 
-        $output->writeln("Applying Mautic Whitelabel...");
-        $output->writeln(" - Logo Path: $logoPath");
+        $output->writeln("Whitelabel variables:");
+        $output->writeln('Brand: ' . $whitelabel['brand']);
+
+        $composer = $this->requireComposer();
+        $extra = $composer->getPackage()->getExtra();
+        if (isset($extra['mautic-scaffold'], $extra['mautic-scaffold']['locations'], $extra['mautic-scaffold']['locations']['web-root'])) {
+            $webRoot = $extra['mautic-scaffold']['locations']['web-root'];
+            $output->writeln("Mautic web-root path: $webRoot");
+        } else {
+            $output->writeln("<error>web-root path not defined in composer.json.</error>");
+            return 1;
+        }
 
         return 0; // Success
     }
