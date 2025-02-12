@@ -69,7 +69,7 @@ class WhitelabelCommand extends BaseCommand
         $output->writeln("overrideLoginViewTemplatePath: {$overrideLoginViewTemplatePath}");
 
         // Create directory for overriding view template
-        mkdir($mauticSystemThemePath.'/UserBundle/Resources/views/Security');
+        mkdir($mauticSystemThemePath.'/UserBundle/Resources/views/Security', $permissions = 0777, $recursive = true);
 
         if (!is_dir($mauticSystemThemePath.'/UserBundle/Resources/views/Security')) {
             $output->writeln("<error>Creating recursive login view template directory was not successful</error>");
