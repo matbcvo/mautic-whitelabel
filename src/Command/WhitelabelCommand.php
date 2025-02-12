@@ -49,7 +49,7 @@ class WhitelabelCommand extends BaseCommand
             return Command::SUCCESS;
         }
 
-        $mauticThemesPath = $projectRootPath.'/'.$mauticWebRoot.'/themes';
+        $mauticThemesPath = $projectRootPath.'/'.$mauticWebRoot.'themes';
         if (!is_dir($mauticThemesPath)) {
             $output->writeln("<error>Mautic themes directory not found!</error>");
             return Command::FAILURE;
@@ -63,13 +63,18 @@ class WhitelabelCommand extends BaseCommand
 
         // Login page
         // app/bundles/UserBundle/Resources/views/Security/base.html.twig
-        $mauticLoginViewTemplatePath = $projectRootPath.'/'.$mauticWebRoot.'/app/bundles/UserBundle/Resources/views/Security';
+        $mauticLoginViewTemplatePath = $projectRootPath.'/'.$mauticWebRoot.'app/bundles/UserBundle/Resources/views/Security';
         $output->writeln("mauticLoginViewTemplatePath: {$mauticLoginViewTemplatePath}");
         $overrideLoginViewTemplatePath = $mauticSystemThemePath.'/UserBundle/Resources/views/Security';
         $output->writeln("overrideLoginViewTemplatePath: {$overrideLoginViewTemplatePath}");
 
         // Create directory for overriding view template
         mkdir($mauticSystemThemePath.'/UserBundle/Resources/views/Security', $recursive = true);
+
+        if (!is_dir($mauticSystemThemePath.'/UserBundle/Resources/views/Security')) {
+            $output->writeln("<error>Creating recursive login view template directory was not successful</error>");
+            return Command::FAILURE;
+        }
 
         // Copy view template file to override
         copy($mauticLoginViewTemplatePath, $overrideLoginViewTemplatePath);
