@@ -13,7 +13,8 @@
         "symfony/dotenv": "^5.4"
     },
     "require-dev": {
-        "composer/composer": "*"
+        "composer/composer": "*",
+        "friendsofphp/php-cs-fixer": "^3.68"
     },
     "autoload": {
       "psr-4": {
