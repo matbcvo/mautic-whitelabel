@@ -25,21 +25,13 @@ class WhitelabelCommand extends BaseCommand
         $output->writeln('<info>Executing whitelabel process...</info>');
 
         $projectRootPath = dirname(ComposerFactory::getComposerFile());
-        $envFile = $projectRootPath.'/.env';
 
         try {
-            $dotenv = new Dotenv();
-            $dotenv->loadEnv($envFile);
-        } catch (PathException $e) {
-            $output->writeln("<error>Environment variables file not found!</error>");
-            $output->writeln($e->getMessage());
+            $whitelabel = $this->getWhitelabelConfig($projectRootPath, $output);
+        } catch (\RuntimeException $e) {
+            $output->writeln(sprintf("<error>%s</error>", $e->getMessage()));
             return Command::FAILURE;
         }
-
-        $whitelabel['brand'] = $_ENV['WHITELABEL_BRAND'] ?? '';
-
-        $output->writeln("Whitelabel variables:");
-        $output->writeln('Brand: ' . $whitelabel['brand']);
 
         $composer = $this->requireComposer();
         $extra = $composer->getPackage()->getExtra();
@@ -54,7 +46,7 @@ class WhitelabelCommand extends BaseCommand
         try {
             $mauticSystemThemePath = $this->createSystemTheme($projectRootPath, $mauticWebRoot);
             $this->copyLoginViewTemplate($projectRootPath, $mauticWebRoot, $mauticSystemThemePath, $output);
-            $this->overrideLoginViewTemplate($mauticSystemThemePath);
+            $this->overrideLoginViewTemplate($mauticSystemThemePath, $whitelabel);
             $this->clearMauticCache($projectRootPath);
         } catch (\RuntimeException $e) {
             $output->writeln(sprintf("<error>%s</error>", $e->getMessage()));
@@ -62,6 +54,35 @@ class WhitelabelCommand extends BaseCommand
         }
 
         return Command::SUCCESS;
+    }
+
+    private function getWhitelabelConfig(string $projectRootPath, OutputInterface $output): array
+    {
+        $envFile = $projectRootPath.'/.env';
+
+        try {
+            $dotenv = new Dotenv();
+            $dotenv->loadEnv($envFile);
+        } catch (PathException $e) {
+            throw new \RuntimeException("Environment variables file not found!");
+        }
+
+        $prefix = 'WHITELABEL_';
+        $whitelabel = [];
+
+        foreach ($_ENV as $envKey => $envValue) {
+            if (strpos($envKey, $prefix) === 0) {
+                $key = strtolower(substr($envKey, strlen($prefix)));
+                $whitelabel[$key] = $envValue;
+            }
+        }
+
+        $output->writeln("Whitelabel config:");
+        foreach ($whitelabel as $key => $value) {
+            $output->writeln(ucfirst($key) . ": " . $value);
+        }
+
+        return $whitelabel;
     }
 
     private function createSystemTheme(string $projectRootPath, string $mauticWebRoot): string
@@ -99,10 +120,11 @@ class WhitelabelCommand extends BaseCommand
         copy($mauticLoginViewTemplatePath.'/base.html.twig', $overrideLoginViewTemplatePath.'/base.html.twig');
     }
 
-    private function overrideLoginViewTemplate(string $mauticSystemThemePath): void
+    private function overrideLoginViewTemplate(string $mauticSystemThemePath, array $whitelabel): void
     {
         $path = $mauticSystemThemePath.'/UserBundle/Resources/views/Security/base.html.twig';
         $content = file_get_contents($path);
+        $newInnerHTML = '<img src="{{ LOGIN_LOGO }}" style="width: {{ LOGIN_LOGO_WIDTH }}px; margin: {{ LOGIN_LOGO_MARGIN_TOP }}px 0 {{ LOGIN_LOGO_MARGIN_BOTTOM }}px 0;" />';
         $pattern = '/(<div[^>]*class\s*=\s*["\'][^"\']*\bmautic-logo\b[^"\']*["\'][^>]*>)(.*?)(<\/div>)/is';
         $replacement = '$1test$3';
         $newContent = preg_replace($pattern, $replacement, $content);
